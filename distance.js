@@ -3,14 +3,12 @@ var router = express.Router();
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const geolib = require('geolib');
-//
 const NodeGeocoder = require('node-geocoder');
 
 router.use(bodyParser.json({extended: false}));
 
-
 // ~~~~~ conected to db
-// #1
+
 let db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -19,7 +17,6 @@ let db = mysql.createConnection({
   })
 
 // ~~~~~~~~~~~~~~~~~ function 
-
 
 // --DB
 function endCon(){
@@ -54,29 +51,18 @@ function conectDB ()
   });
 };
 
-////////////////////
-
-//--------------
-
-// to location
+// ~~~~~~~~~~~~~ location ````
 const options = {
     provider: 'opencage',
     apiKey: 'c4937e2220aa4333b5a36c5113bf3dbb',
    };
 
-//---
-
 const geocoder = NodeGeocoder(options);
 
-//
 let fun = async function getLanLon(city)
 {
-    // start();
-    // .. function start() {
-// async    // Using callback
+
     const res = await geocoder.geocode(city);
-    // var  lat = res[0].latitude
-    // var lon = res[0].longitude;
     if (res.length==0){
         console.log("invalid city name")
         return -1;
@@ -87,10 +73,7 @@ let fun = async function getLanLon(city)
     };
     console.log(obj.lat)
     console.log(obj.lon)
-
     return obj;
-    // console.log(lat);
-
 }
 
 function findKm(city1,city2)
@@ -114,13 +97,8 @@ function findKm(city1,city2)
             })
     } );
 }
-// get the km between the cities
 
-// let afind = getLanLon("telaviv")
-// console.log("afinda",afind)
-
-
-// get the source and distination city> 
+// ~~~~~~~~~~~~ get / 
 router.get('/', (req, res)=> 
 {
     try{
@@ -135,7 +113,6 @@ router.get('/', (req, res)=>
         // if (req.query == {}){
         //     console.log("empty")
         // }
-
         conectDB();
         console.log("cc " ,req.query )
         const q =  `SELECT km,distance_id,counterAB FROM Distance WHERE (locationA = "${distination}" and locationB = "${source}") or(locationA = "${source}" and locationB ="${distination}")`
@@ -144,8 +121,6 @@ router.get('/', (req, res)=>
             // endCon(); // end conection
             if(!err)
             {
-            //    console.log(result[0].km);
-            //    result[0],distance_id
                 if(result.length == 0){
                     // add to DB
                     console.log("not found");
@@ -155,7 +130,6 @@ router.get('/', (req, res)=>
                             fun(distination).then((object2) =>{
                                 console.log("aaaa: "+ object1.lat 
                                 + " " + object1.lon +" " +object2.lat+ " "+ object2.lon)
-                                
                             // get distance
                             let a = geolib.getPreciseDistance(
                                 { latitude: object1.lat, longitude: object1.lon },
@@ -165,7 +139,6 @@ router.get('/', (req, res)=>
                                 const km1 = geolib.convertDistance(a, 'km'); // convert to km
                                 console.log(km1)
                             // }  
-                              
                                 const qInsert =`insert into Distance(km,locationA,locationB,counterAB,counterBA)value(37.0, "${source}" ,"${distination}",1,0)`;
                                 console.log("quert is \n",qInsert,"\n");
                                 db.query(qInsert);
@@ -183,28 +156,23 @@ router.get('/', (req, res)=>
                     // endCon();
                     // data.distance = km
                     // res.send(data);
-
                 }
                 else{
                     // return the distance
                     console.log("found");
                     km = result[0].km;
                     data.distance = km
-                    //update counter
                     // conectDB();
+                    //  update counter
                     let counter = result[0].counterAB +1;
                     const qUpdate =`UPDATE Distance SET counterAB = ${counter} WHERE distance_id = ${result[0].distance_id}`;
                     console.log("qUpdate is: ", qUpdate)
-                    // const qUpdate = 'UPDATE Distance(km,locationA,locationB,counterAB,counterBA)value(35.0, "${source}" ,"${distination}",(select counterAB from Users where distance_id = "${result[0].distance_id}"))`;
                     db.query(qUpdate);
                     endCon();
                     res.send(data);
                 }
             }
-        });
-        // res.send(km);
-        // res.status(200).end(); // where put
-        
+        });        
     }catch(err){
         res.end("err" , err.code);
     }
