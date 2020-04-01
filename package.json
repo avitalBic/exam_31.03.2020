@@ -9,7 +9,11 @@
   "author": "Avital_Bichman",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.19.2",
     "body-parser": "^1.19.0",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "geolib": "^3.2.1",
+    "mysql": "^2.18.1",
+    "node-geocoder": "^3.27.0"
   }
 }
